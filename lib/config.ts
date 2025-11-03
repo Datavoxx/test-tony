@@ -19,8 +19,8 @@ export const getThemeConfig = (theme: ColorScheme): ThemeOption => ({
   // Om 'density' inte stöds i din version, ta bort raden nedan.
   // density: "normal",
   color: {
-    grayscale: theme === "dark"
-      ? { hue: 220, tint: 6, shade: -2 }   // din tidigare mörka känsla
+    grayscale: theme === "light"
+      ? { hue: 0, tint: 6, shade: -2 }   // din tidigare mörka känsla
       : { hue: 0,   tint: 0, shade: 1 },   // playground (ljus)
     accent: {
       primary: theme === "dark" ? "#f5f5f5" : "#050505", // playground svart i light, ljus i dark
