@@ -11,7 +11,7 @@ export const PLACEHOLDER_INPUT = "Skriv här...";
 export const GREETING = "Låt mig hjälpa dig Tony med att skapa en kallelse😁";
 
 // Viktigt: behåll signaturen (theme: ColorScheme) – ChatKitPanel anropar så.
-export const getThemeConfig = (_theme: ColorScheme): ThemeOption => ({
+export const getThemeConfig = (theme: ColorScheme): ThemeOption => ({
   color: {
     // Ljust, neutralt – ingen blåton
     grayscale: { hue: 0, tint: 0, shade: 1 },
