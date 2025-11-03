@@ -1,33 +1,28 @@
-import { ColorScheme, StartScreenPrompt, ThemeOption } from "@openai/chatkit";
+import { StartScreenPrompt, ThemeOption } from "@openai/chatkit";
 
 export const WORKFLOW_ID =
   process.env.NEXT_PUBLIC_CHATKIT_WORKFLOW_ID?.trim() ?? "";
 
 export const CREATE_SESSION_ENDPOINT = "/api/create-session";
 
-// Startskärmen på svenska
+// Startskärm (svenska)
 export const STARTER_PROMPTS: StartScreenPrompt[] = [];
 export const PLACEHOLDER_INPUT = "Skriv här...";
 export const GREETING = "Låt mig hjälpa dig Tony med att skapa en kallelse😁";
 
-// Mixad tema-funktion: använder dina playground-värden för 'light'
-// och ger rimliga värden i 'dark' så allt förblir läsbart.
-export const getThemeConfig = (theme: ColorScheme): ThemeOption => ({
-  // Om din ChatKit-version stödjer detta fält tas det med, annars kan du ta bort raden nedan.
-  // colorScheme: theme, 
+// Alltid ljust tema – neutral gråskala och svart accent
+export const getThemeConfig = (): ThemeOption => ({
+  colorScheme: "light",
   radius: "pill",
-  // Om 'density' inte stöds i din version, ta bort raden nedan.
+  // density kan utelämnas om din ChatKit-version inte stödjer det
   // density: "normal",
   color: {
-    grayscale: theme === "light"
-      ? { hue: 0, tint: 6, shade: -2 }   // din tidigare mörka känsla
-      : { hue: 0,   tint: 0, shade: 1 },   // playground (ljus)
-    accent: {
-      primary: theme === "dark" ? "#f5f5f5" : "#050505", // playground svart i light, ljus i dark
-      level: 1,
-    },
+    // Så ljust och neutralt som möjligt utan blåstick
+    grayscale: { hue: 0, tint: 0, shade: 1 },
+    // Svart primärfärg (ikon/knappmarkeringar etc.)
+    accent: { primary: "#050505", level: 1 },
   },
-  // Om typografi stöds av din ThemeOption—behåll; annars ta bort hela blocket.
+  // typografi-blocket är valfritt; ta bort om din version klagar
   typography: {
     baseSize: 16,
     fontFamily:
@@ -42,7 +37,7 @@ export const getThemeConfig = (theme: ColorScheme): ThemeOption => ({
         style: "normal",
         display: "swap",
       },
-      // lägg till dina övriga fontSources här vid behov
+      // lägg ev. fler källor här
     ],
   },
 });
