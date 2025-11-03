@@ -1,28 +1,28 @@
-import { StartScreenPrompt, ThemeOption } from "@openai/chatkit";
+import { ColorScheme, StartScreenPrompt, ThemeOption } from "@openai/chatkit";
 
 export const WORKFLOW_ID =
   process.env.NEXT_PUBLIC_CHATKIT_WORKFLOW_ID?.trim() ?? "";
 
 export const CREATE_SESSION_ENDPOINT = "/api/create-session";
 
-// Startskärm (svenska)
+// Startskärmen på svenska
 export const STARTER_PROMPTS: StartScreenPrompt[] = [];
 export const PLACEHOLDER_INPUT = "Skriv här...";
 export const GREETING = "Låt mig hjälpa dig Tony med att skapa en kallelse😁";
 
-// Alltid ljust tema – neutral gråskala och svart accent
-export const getThemeConfig = (): ThemeOption => ({
-  colorScheme: "light",
-  radius: "pill",
-  // density kan utelämnas om din ChatKit-version inte stödjer det
-  // density: "normal",
+// Viktigt: behåll signaturen (theme: ColorScheme) då ChatKitPanel anropar så.
+// Vi ignorerar värdet och returnerar alltid en ljus palett.
+export const getThemeConfig = (_theme: ColorScheme): ThemeOption => ({
   color: {
-    // Så ljust och neutralt som möjligt utan blåstick
+    // Ljus, neutral gråskala (ingen blå ton)
     grayscale: { hue: 0, tint: 0, shade: 1 },
-    // Svart primärfärg (ikon/knappmarkeringar etc.)
+    // Svart accent (tydliga knappar/ikoner)
     accent: { primary: "#050505", level: 1 },
   },
-  // typografi-blocket är valfritt; ta bort om din version klagar
+  // Rundade hörn enligt din bas
+  radius: "pill",
+
+  // Typografi (kan tas bort om din ThemeOption-typ inte stödjer det)
   typography: {
     baseSize: 16,
     fontFamily:
@@ -37,7 +37,7 @@ export const getThemeConfig = (): ThemeOption => ({
         style: "normal",
         display: "swap",
       },
-      // lägg ev. fler källor här
+      // lägg fler font-källor här vid behov
     ],
   },
 });
