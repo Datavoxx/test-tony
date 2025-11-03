@@ -8,7 +8,7 @@ import {
   GREETING,
   CREATE_SESSION_ENDPOINT,
   WORKFLOW_ID,
-  getThemeConfig, // NOTE: antas ha signatur getThemeConfig(): ThemeOption
+  getThemeConfig,
 } from "@/lib/config";
 import { ErrorOverlay } from "./ErrorOverlay";
 import type { ColorScheme } from "@/hooks/useColorScheme";
@@ -73,19 +73,25 @@ export function ChatKitPanel({
   }, []);
 
   useEffect(() => {
-    if (!isBrowser) return;
+    if (!isBrowser) {
+      return;
+    }
 
     let timeoutId: number | undefined;
 
     const handleLoaded = () => {
-      if (!isMountedRef.current) return;
+      if (!isMountedRef.current) {
+        return;
+      }
       setScriptStatus("ready");
       setErrorState({ script: null });
     };
 
     const handleError = (event: Event) => {
       console.error("Failed to load chatkit.js for some reason", event);
-      if (!isMountedRef.current) return;
+      if (!isMountedRef.current) {
+        return;
+      }
       setScriptStatus("error");
       const detail = (event as CustomEvent<unknown>)?.detail ?? "unknown error";
       setErrorState({ script: `Error: ${detail}`, retryable: false });
@@ -119,7 +125,9 @@ export function ChatKitPanel({
         "chatkit-script-error",
         handleError as EventListener
       );
-      if (timeoutId) window.clearTimeout(timeoutId);
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
     };
   }, [scriptStatus, setErrorState]);
 
@@ -170,18 +178,25 @@ export function ChatKitPanel({
       }
 
       if (isMountedRef.current) {
-        if (!currentSecret) setIsInitializingSession(true);
+        if (!currentSecret) {
+          setIsInitializingSession(true);
+        }
         setErrorState({ session: null, integration: null, retryable: false });
       }
 
       try {
         const response = await fetch(CREATE_SESSION_ENDPOINT, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
             workflow: { id: WORKFLOW_ID },
             chatkit_configuration: {
-              file_upload: { enabled: true },
+              // enable attachments
+              file_upload: {
+                enabled: true,
+              },
             },
           }),
         });
@@ -201,7 +216,10 @@ export function ChatKitPanel({
           try {
             data = JSON.parse(raw) as Record<string, unknown>;
           } catch (parseError) {
-            console.error("Failed to parse create-session response", parseError);
+            console.error(
+              "Failed to parse create-session response",
+              parseError
+            );
           }
         }
 
@@ -246,10 +264,8 @@ export function ChatKitPanel({
   const chatkit = useChatKit({
     api: { getClientSecret },
     theme: {
-      // Lås UI till ljust tema
-      colorScheme: "light",
-      // Viktigt: getThemeConfig antas ta 0 argument → anropa utan parameter
-      ...getThemeConfig(),
+      colorScheme: theme,
+      ...getThemeConfig(theme),
     },
     startScreen: {
       greeting: GREETING,
@@ -258,6 +274,7 @@ export function ChatKitPanel({
     composer: {
       placeholder: PLACEHOLDER_INPUT,
       attachments: {
+        // Enable attachments
         enabled: true,
       },
     },
@@ -271,7 +288,9 @@ export function ChatKitPanel({
       if (invocation.name === "switch_theme") {
         const requested = invocation.params.theme;
         if (requested === "light" || requested === "dark") {
-          if (isDev) console.debug("[ChatKitPanel] switch_theme", requested);
+          if (isDev) {
+            console.debug("[ChatKitPanel] switch_theme", requested);
+          }
           onThemeRequest(requested);
           return { success: true };
         }
@@ -305,6 +324,8 @@ export function ChatKitPanel({
       processedFacts.current.clear();
     },
     onError: ({ error }: { error: unknown }) => {
+      // Note that Chatkit UI handles errors for your users.
+      // Thus, your app code doesn't need to display errors on UI.
       console.error("ChatKit error", error);
     },
   });
@@ -323,7 +344,7 @@ export function ChatKitPanel({
   }
 
   return (
-    <div className="relative pb-8 flex h-[90vh] w-full rounded-2xl flex-col overflow-hidden bg-white shadow-sm">
+    <div className="relative pb-8 flex h-[90vh] w-full rounded-2xl flex-col overflow-hidden bg-white shadow-sm transition-colors dark:bg-slate-900">
       <ChatKit
         key={widgetInstanceKey}
         control={chatkit.control}
@@ -351,10 +372,14 @@ function extractErrorDetail(
   payload: Record<string, unknown> | undefined,
   fallback: string
 ): string {
-  if (!payload) return fallback;
+  if (!payload) {
+    return fallback;
+  }
 
   const error = payload.error;
-  if (typeof error === "string") return error;
+  if (typeof error === "string") {
+    return error;
+  }
 
   if (
     error &&
@@ -366,11 +391,15 @@ function extractErrorDetail(
   }
 
   const details = payload.details;
-  if (typeof details === "string") return details;
+  if (typeof details === "string") {
+    return details;
+  }
 
   if (details && typeof details === "object" && "error" in details) {
     const nestedError = (details as { error?: unknown }).error;
-    if (typeof nestedError === "string") return nestedError;
+    if (typeof nestedError === "string") {
+      return nestedError;
+    }
     if (
       nestedError &&
       typeof nestedError === "object" &&
@@ -381,7 +410,9 @@ function extractErrorDetail(
     }
   }
 
-  if (typeof payload.message === "string") return payload.message;
+  if (typeof payload.message === "string") {
+    return payload.message;
+  }
 
   return fallback;
 }
