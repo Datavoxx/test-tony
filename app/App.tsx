@@ -21,56 +21,57 @@ export default function App() {
   }, []);
 
    return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-slate-950">
-      {/* Knapp som triggar chatten */}
-      <button
-        onClick={() => setOpen(true)}
-        className="mb-4 text-xs px-3 py-1 rounded border border-slate-300 text-slate-100 hover:bg-slate-800"
-      >
-        Öppna agent
-      </button>
+  <main className="flex min-h-screen flex-col items-center justify-center bg-slate-950">
+    {/* Knapp som triggar chatten */}
+    <button
+      onClick={() => setOpen(true)}
+      className="mb-4 text-xs px-3 py-1 rounded border border-slate-300 text-slate-100 hover:bg-slate-800"
+    >
+      Öppna agent
+    </button>
 
-      {/* Overlay finns ALLTID – men vi styr synlighet + position med klasser */}
+    {/* Overlay – alltid där, vi styr bara synlighet + panelposition */}
+    <div
+      className={`
+        fixed inset-0 z-50 flex justify-end items-stretch
+        bg-black/40
+        transition-opacity duration-300
+        ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
+      `}
+    >
+      {/* Själva panelen till höger */}
       <div
         className={`
-          fixed inset-0 z-50 flex items-end justify-center
-          bg-black/40
-          transition-opacity duration-300
-          ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
+          h-full w-full max-w-[420px]
+          bg-slate-100 dark:bg-slate-950
+          flex flex-col
+          transform transition-transform duration-300
+          ${open ? "translate-x-0" : "translate-x-full"}
         `}
       >
-        <div
-          className={`
-            w-full h-full bg-slate-100 dark:bg-slate-950
-            flex flex-col
-            transform transition-transform duration-300
-            ${open ? "translate-y-0" : "translate-y-full"}
-          `}
-        >
-          {/* Top-bar */}
-          <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200">
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-              Exploring AI Abilities
-            </h2>
-            <button
-              onClick={() => setOpen(false)}
-              className="text-xs px-2 py-1 rounded border border-slate-300 text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-800"
-            >
-              Stäng
-            </button>
-          </div>
+        {/* Top-bar */}
+        <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            Exploring AI Abilities
+          </h2>
+          <button
+            onClick={() => setOpen(false)}
+            className="text-xs px-2 py-1 rounded border border-slate-300 text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-800"
+          >
+            Stäng
+          </button>
+        </div>
 
-          {/* Själva ChatKit-panelen */}
-          <div className="flex-1 mx-auto w-full">
-            <ChatKitPanel
-              theme={scheme}
-              onWidgetAction={handleWidgetAction}
-              onResponseEnd={handleResponseEnd}
-              onThemeRequest={setScheme}
-            />
-          </div>
+        {/* ChatKit inuti panelen */}
+        <div className="flex-1 mx-auto w-full">
+          <ChatKitPanel
+            theme={scheme}
+            onWidgetAction={handleWidgetAction}
+            onResponseEnd={handleResponseEnd}
+            onThemeRequest={setScheme}
+          />
         </div>
       </div>
-    </main>
-  );
-}
+    </div>
+  </main>
+);
