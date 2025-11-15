@@ -33,7 +33,7 @@ export default function App() {
       {/* Bottom sheet-overlay */}
       {open && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40">
-          <div className="w-full max-w-[620px] h-[70vh] bg-slate-100 dark:bg-slate-950 rounded-t-2xl shadow-xl overflow-hidden flex flex-col">
+          <div className="w-full h-full bg-slate-100 dark:bg-slate-950 shadow-xl overflow-hidden flex flex-col">
             <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200">
               <h2 className="text-sm font-semibold">Exploring AI Abilities</h2>
               <button
