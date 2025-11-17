@@ -5,10 +5,9 @@ import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 
 export type ColorScheme = "light" | "dark";
 export type ColorSchemePreference = ColorScheme | "system";
 
+// We keep the keys but they no longer affect the scheme.
 const STORAGE_KEY = "chatkit-color-scheme";
 const PREFERS_DARK_QUERY = "(prefers-color-scheme: dark)";
-
-type MediaQueryCallback = (event: MediaQueryListEvent) => void;
 
 function getMediaQuery(): MediaQueryList | null {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
@@ -16,14 +15,12 @@ function getMediaQuery(): MediaQueryList | null {
   }
   try {
     return window.matchMedia(PREFERS_DARK_QUERY);
-  } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      console.warn("[useColorScheme] matchMedia failed", error);
-    }
+  } catch {
     return null;
   }
 }
 
+// --- We still implement system detection (not used anymore, but harmless) ---
 function getSystemSnapshot(): ColorScheme {
   const media = getMediaQuery();
   return media?.matches ? "dark" : "light";
@@ -35,71 +32,60 @@ function getServerSnapshot(): ColorScheme {
 
 function subscribeSystem(listener: () => void): () => void {
   const media = getMediaQuery();
-  if (!media) {
-    return () => { };
-  }
+  if (!media) return () => {};
 
-  const handler: MediaQueryCallback = () => listener();
+  const handler = () => listener();
 
   if (typeof media.addEventListener === "function") {
     media.addEventListener("change", handler);
     return () => media.removeEventListener("change", handler);
   }
 
-  // Fallback for older browsers or environments.
   if (typeof media.addListener === "function") {
     media.addListener(handler);
     return () => media.removeListener(handler);
   }
 
-  return () => { };
+  return () => {};
 }
 
 function readStoredPreference(): ColorSchemePreference | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
+  if (typeof window === "undefined") return null;
+
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw === "light" || raw === "dark") {
-      return raw;
-    }
-    return raw === "system" ? "system" : null;
-  } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      console.warn("[useColorScheme] Failed to read preference", error);
-    }
+    if (raw === "light" || raw === "dark") return raw;
+    if (raw === "system") return "system";
+    return null;
+  } catch {
     return null;
   }
 }
 
 function persistPreference(preference: ColorSchemePreference): void {
-  if (typeof window === "undefined") {
-    return;
-  }
+  if (typeof window === "undefined") return;
+
   try {
     if (preference === "system") {
       window.localStorage.removeItem(STORAGE_KEY);
     } else {
       window.localStorage.setItem(STORAGE_KEY, preference);
     }
-  } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      console.warn("[useColorScheme] Failed to persist preference", error);
-    }
-  }
+  } catch {}
 }
 
-function applyDocumentScheme(scheme: ColorScheme): void {
-  if (typeof document === "undefined") {
-    return;
-  }
+// --- HERE WE FORCE THE ENTIRE APP INTO LIGHT MODE ---
+function applyDocumentScheme(): void {
+  if (typeof document === "undefined") return;
+
   const root = document.documentElement;
-  root.dataset.colorScheme = scheme;
-  root.classList.toggle("dark", scheme === "dark");
-  root.style.colorScheme = scheme;
+
+  root.dataset.colorScheme = "light";
+  root.classList.remove("dark");
+  root.style.colorScheme = "light";
 }
 
+// RESULT TYPE
 type UseColorSchemeResult = {
   scheme: ColorScheme;
   preference: ColorSchemePreference;
@@ -112,44 +98,34 @@ function useSystemColorScheme(): ColorScheme {
   return useSyncExternalStore(subscribeSystem, getSystemSnapshot, getServerSnapshot);
 }
 
+// --- MAIN HOOK ---
 export function useColorScheme(
-  initialPreference: ColorSchemePreference = "system"
+  initialPreference: ColorSchemePreference = "light" // default is now light
 ): UseColorSchemeResult {
-  const systemScheme = useSystemColorScheme();
 
+  // Still stored, but NOT used to determine actual UI theme
   const [preference, setPreferenceState] = useState<ColorSchemePreference>(() => {
-    if (typeof window === "undefined") {
-      return initialPreference;
-    }
+    if (typeof window === "undefined") return initialPreference;
     return readStoredPreference() ?? initialPreference;
   });
 
-  const scheme = useMemo<ColorScheme>(
-    () => (preference === "system" ? systemScheme : preference),
-    [preference, systemScheme]
-  );
+  // --- IGNORE EVERYTHING: ALWAYS return "light" ---
+  const scheme: ColorScheme = "light";
 
   useEffect(() => {
     persistPreference(preference);
   }, [preference]);
 
   useEffect(() => {
-    applyDocumentScheme(scheme);
+    applyDocumentScheme(); // always applies light
   }, [scheme]);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
+    if (typeof window === "undefined") return;
 
     const handleStorage = (event: StorageEvent) => {
-      if (event.key !== STORAGE_KEY) {
-        return;
-      }
-      setPreferenceState((current) => {
-        const stored = readStoredPreference();
-        return stored ?? current;
-      });
+      if (event.key !== STORAGE_KEY) return;
+      setPreferenceState((current) => readStoredPreference() ?? current);
     };
 
     window.addEventListener("storage", handleStorage);
@@ -160,17 +136,18 @@ export function useColorScheme(
     setPreferenceState(next);
   }, []);
 
-  const setScheme = useCallback((next: ColorScheme) => {
-    setPreferenceState(next);
+  const setScheme = useCallback(() => {
+    // Ignored, but updated for consistency
+    setPreferenceState("light");
   }, []);
 
   const resetPreference = useCallback(() => {
-    setPreferenceState("system");
+    setPreferenceState("light");
   }, []);
 
   return {
-    scheme,
-    preference,
+    scheme,        // ALWAYS "light"
+    preference,    // stored value (not used for UI)
     setScheme,
     setPreference,
     resetPreference,
